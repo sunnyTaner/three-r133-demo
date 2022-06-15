@@ -1,5 +1,6 @@
 {
 	"webgl": [
+		"01_shader_大气层",
 		"webgl_animation_keyframes",
 		"webgl_animation_skinning_blending",
 		"webgl_animation_skinning_additive_blending",

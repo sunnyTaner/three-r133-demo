@@ -76,9 +76,7 @@
 			const tags = await ( await fetch( 'tags.json' ) ).json();
 
 			for ( const key in files ) {
-
 				const section = files[ key ];
-
 				const header = document.createElement( 'h2' );
 				header.textContent = key;
 				header.setAttribute( 'data-category', key );
