@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>平移与碰撞</title>
+	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/three.js/r133/three.js"></script>
+</head>
+<body>
+<canvas id="mainCanvas"></canvas>
+</body>
+<script>
+	let scene, camera, renderer, leftPress, cube;
+	let left, right, front, back;
+	init();
+	helper();
+	createBoxer();
+	animate();
+
+	function init() {
+		// 初始化场景
+		scene = new THREE.Scene();
+		scene.background = new THREE.Color(0xffffff);
+
+		// 创建渲染器
+		renderer = new THREE.WebGLRenderer({
+			canvas: document.getElementById("mainCanvas"),
+			antialias: true, // 抗锯齿
+			alpha: true
+		});
+		renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+		// 创建透视相机
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		camera.position.set(0, 40, 30);
+		camera.lookAt(0, 0, 0);
+
+		// 参数初始化
+		mouse = new THREE.Vector2();
+		raycaster = new THREE.Raycaster();
+
+		// 环境光
+		var ambientLight = new THREE.AmbientLight(0x606060);
+		scene.add(ambientLight);
+		// 平行光
+		var directionalLight = new THREE.DirectionalLight(0xBCD2EE);
+		directionalLight.position.set(1, 0.75, 0.5).normalize();
+		scene.add(directionalLight);
+	}
+
+	function helper() {
+		var grid = new THREE.GridHelper(100, 20, 0xFF0000, 0x000000);
+		grid.material.opacity = 0.1;
+		grid.material.transparent = true;
+		scene.add(grid);
+
+		var axesHelper = new THREE.AxesHelper(30);
+		scene.add(axesHelper);
+	}
+
+	function animate() {
+		requestAnimationFrame(animate);
+		renderer.render(scene, camera);
+		if (front) {
+			cube.translateZ(-1)
+		}
+		if (back) {
+			cube.translateZ(1);
+		}
+		if (left) {
+			cube.translateX(-1);
+		}
+		if (right) {
+			cube.translateX(1);
+		}
+	}
+
+	function createBoxer() {
+		var geometry = new THREE.BoxGeometry(5, 5, 5);
+		console.log(geometry)
+		var mats = [];
+		mats.push(new THREE.MeshPhongMaterial({color: 0x00ff00}));
+		mats.push(new THREE.MeshPhongMaterial({color: 0x00ff00}));
+		mats.push(new THREE.MeshPhongMaterial({color: 0x00ff00}));
+		mats.push(new THREE.MeshPhongMaterial({color: 0x00ff00}));
+		mats.push(new THREE.MeshPhongMaterial({color: 0xff0000}));
+		mats.push(new THREE.MeshPhongMaterial({color: 0x00ff00}));
+		cube = new THREE.Mesh(geometry, mats);
+		console.log(cube)
+		/*for (let j = 0; j < geometry.faces.length; j++) {
+			if (j === 8 || j === 9) {
+				geometry.faces[j].materialIndex = 1;
+			} else {
+				geometry.faces[j].materialIndex = 0;
+			}
+		}*/
+		/*let arrowFront = new THREE.ArrowHelper(cube.getWorldDirection(), cube.position, 15, 0xFF0000);
+		scene.add(arrowFront);
+		let arrowBack = new THREE.ArrowHelper(cube.getWorldDirection().negate(), cube.position, 15, 0x00FF00);
+		scene.add(arrowBack);*/
+		scene.add(cube);
+	}
+
+	$(window).mousemove(function (event) {
+		event.preventDefault();
+		if (leftPress) {
+			cube.rotateOnAxis(
+					new THREE.Vector3(0, 1, 0),
+					event.originalEvent.movementX / 500
+			);
+			cube.rotateOnAxis(
+					new THREE.Vector3(1, 0, 0),
+					event.originalEvent.movementY / 500
+			);
+		}
+	});
+
+	$(window).mousedown(function (event) {
+		event.preventDefault();
+		leftPress = true;
+
+	});
+
+	$(window).mouseup(function (event) {
+		event.preventDefault();
+		leftPress = false;
+	});
+
+	$(window).keydown(function (event) {
+		switch (event.keyCode) {
+			case 65: // a
+				left = true;
+				break;
+			case 68: // d
+				right = true;
+				break;
+			case 83: // s
+				back = true;
+				break;
+			case 87: // w
+				front = true;
+				break;
+		}
+	});
+
+	$(window).keyup(function (event) {
+		switch (event.keyCode) {
+			case 65: // a
+				left = false;
+				break;
+			case 68: // d
+				right = false;
+				break;
+			case 83: // s
+				back = false;
+				break;
+			case 87: // w
+				front = false;
+				break;
+		}
+	});
+</script>
+</html>
