@@ -85,12 +85,22 @@
 				for ( let i = 0; i < section.length; i ++ ) {
 
 					const file = section[ i ];
-
-					const link = createLink( file );
+					const fileConfig={
+						name:file.name?file.name:file,
+						url:file.url?file.url:file+'.html',
+						img:file.img?file.img:`screenshots/${ file }.jpg`,
+						title:getName(file)
+					}
+					const link = createLink( fileConfig );
 					container.appendChild( link );
 
-					links[ file ] = link;
-					validRedirects.set( file, file + '.html' );
+					links[ fileConfig.name ] = link;
+					if(file.hasOwnProperty('url')){
+						validRedirects.set( file.name, file.url );
+					}else{
+						validRedirects.set( file, file + '.html' );
+					}
+
 
 				}
 
@@ -99,7 +109,7 @@
 			if ( window.location.hash !== '' ) {
 
 				const file = window.location.hash.substring( 1 );
-
+				console.log(file)
 				// use a predefined map of redirects to avoid untrusted URL redirection due to user-provided value
 
 				if ( validRedirects.has( file ) === true ) {
@@ -196,11 +206,11 @@
 
 			const template = `
 				<div class="card">
-					<a href="${file}.html" target="viewer">
+					<a href="${file.url}" target="viewer">
 						<div class="cover">
-							<img src="screenshots/${ file }.jpg" loading="lazy" width="400" />
+							<img src="${ file.img}" loading="lazy" width="400" />
 						</div>
-						<div class="title">${getName( file )}</div>
+						<div class="title">${file.title}</div>
 					</a>
 				</div>
 			`;
@@ -211,7 +221,7 @@
 
 				if ( event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey ) return;
 
-				selectFile( file );
+				selectFile( file.name );
 
 			} );
 
@@ -235,7 +245,7 @@
 
 			// Reveal "View source" button and set attributes to this example
 			viewSrcButton.style.display = '';
-			viewSrcButton.href = 'https://github.com/mrdoob/three.js/blob/master/examples/' + selected + '.html';
+			viewSrcButton.href = 'https://github.com/sunnyTaner/three-r133-demo/blob/master/examples/' + selected + '.html';
 			viewSrcButton.title = 'View source code for ' + getName( selected ) + ' on GitHub';
 
 		}
@@ -322,10 +332,15 @@
 		}
 
 		function getName( file ) {
-
-			const name = file.split( '_' );
-			name.shift();
-			return name.join( ' / ' );
+			let name=''
+			if(file.hasOwnProperty('label')){
+				name=file.label
+			}else{
+				name = file.split( '_' );
+				name.shift();
+				name.join( ' / ' );
+			}
+			return name
 
 		}
 

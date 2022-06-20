@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+	<script id="vertexShader" type="x-shader/x-vertex">
+
+    precision mediump float;
+    precision mediump int;
+
+    uniform mat4 modelViewMatrix;
+    uniform mat4 projectionMatrix;
+
+    attribute vec3 position;
+
+    varying vec3 vPosition;
+
+    void main() {
+
+        vPosition = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+
+</script>
+	<script id="fragmentShader" type="x-shader/x-fragment">
+
+    precision mediump float;
+    precision mediump int;
+
+    uniform float ratio;
+
+    varying vec3 vPosition;
+
+    void main() {
+        vec3 center = vec3( 0.0,0.0,0.0 );
+        float dist=  distance(vPosition,center)/100.0;
+        dist = clamp(dist,0.0,1.0);
+        float color = 1.0-dist ;
+        gl_FragColor =  vec4( color*ratio, color*ratio,0.0,dist );
+
+    }
+
+</script>
+</head>
+<body>
+<script type="module">
+
+	import * as THREE from '../build/three.module.js';
+
+	let camera, scene, renderer;
+
+	const clock = new THREE.Clock();
+	const textureLoader = new THREE.TextureLoader();
+	let next = 0,plane;
+	init();
+	animate();
+
+	function init() {
+
+		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 200 );
+		camera.position.set( 10, 5, 20 );
+		scene = new THREE.Scene();
+		const dirLight = new THREE.DirectionalLight( 0xffffff );
+		dirLight.position.set( 0, 0, 1 );
+		scene.add( dirLight );
+		const axesHelper = new THREE.AxesHelper( 5 );
+		scene.add( axesHelper );
+
+		const material = new THREE.RawShaderMaterial({
+			uniforms: {
+				ratio: {
+					value: 0.0
+				}
+			},
+			vertexShader: document.getElementById('vertexShader').textContent,
+			fragmentShader: document.getElementById('fragmentShader').textContent,
+		});
+		const geometry = new THREE.PlaneGeometry(10,10,10,10);
+		plane = new THREE.Mesh(geometry, material);
+		//plane.rotateX(-Math.PI / 2);
+		scene.add(plane);
+
+		renderer = new THREE.WebGLRenderer();
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		//
+
+		window.addEventListener( 'resize', onWindowResize );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+		requestAnimationFrame(animate);
+		next = next + 0.01;
+		if (next > 1)
+			next = 0;
+		plane.material.uniforms.ratio.value = next;
+		renderer.render(scene, camera);
+	}
+	function animate1() {
+
+		requestAnimationFrame( animate );
+
+		const elapsed = clock.getElapsedTime();
+
+		moon.position.set( Math.sin( elapsed ) * 5, 0, Math.cos( elapsed ) * 5 );
+
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

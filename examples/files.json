@@ -1,6 +1,59 @@
 {
 	"webgl": [
-		"01_shader_大气层",
+		{
+			"label": "粒子系统/雨/雪/烟雾/火焰",
+			"name": "粒子系统_Particle-Engine",
+			"url": "粒子系统/Particle-Engine.html",
+			"img": "screenshots/粒子系统.png"
+		},
+		{
+			"label": "第一人称视角控制",
+			"name": "move_firstPersonControls",
+			"img": "screenshots/move_firstPersonControls.png",
+			"url": "move_firstPersonControls.html"
+		},
+		{
+			"label": "水滴涟漪",
+			"name": "01shader_雨水滴到水面效果",
+			"img": "screenshots/水滴涟漪.png",
+			"url": "01shader_雨水滴到水面效果.html"
+		},
+		{
+			"label": "地球大气层",
+			"name": "01_shader_大气层",
+			"img": "screenshots/01_shader_大气层.png",
+			"url": "01_shader_大气层.html"
+		},
+		{
+			"label": "海洋（参照了：https://www.shadertoy.com/）",
+			"name": "01shader_海洋",
+			"img": "screenshots/01shader_海洋.png",
+			"url": "01shader_海洋.html"
+		},
+		{
+			"label": "火焰（参照了：https://www.shadertoy.com/）",
+			"name": "01shader_火焰",
+			"img": "screenshots/01shader_火焰.png",
+			"url": "01shader_火焰.html"
+		},
+		{
+			"label": "蓝色火焰（参照了：https://www.shadertoy.com/）",
+			"name": "01shader_火焰02",
+			"img": "screenshots/01shader_火焰2.png",
+			"url": "01shader_火焰02.html"
+		},
+		{
+			"label": "飞线",
+			"name": "飞线/index",
+			"img": "screenshots/01shader_飞线.png",
+			"url": "飞线/index.html"
+		},
+		{
+			"label": "shadertoy上借鉴的一些特效",
+			"name": "shaderEffect/index",
+			"img": "screenshots/01shader_shadertoy.png",
+			"url": "shaderEffect/index.html"
+		},
 		"webgl_animation_keyframes",
 		"webgl_animation_skinning_blending",
 		"webgl_animation_skinning_additive_blending",

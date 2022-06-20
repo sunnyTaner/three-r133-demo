@@ -31,6 +31,7 @@
 	var directionalLight;
 	var material_glow, material;
 	var mesh;
+	const textureLoader = new THREE.TextureLoader();
 	init();
 	animate();
 
@@ -61,22 +62,24 @@
 
 		scene = new THREE.Scene();
 
-//		var ambient = new THREE.AmbientLight( 0xffeedd );
-//		scene.add( ambient );
+		var ambient = new THREE.AmbientLight( 0xffeedd );
+		scene.add( ambient );
 
-		directionalLight = new THREE.DirectionalLight( 0xffeedd );
-		directionalLight.position.set( 0, 1, 0 );
+		directionalLight = new THREE.DirectionalLight( '#fff' );
+		directionalLight.position.set( 2, 10, 0 );
 		scene.add( directionalLight );
+
 
 		//start();
 
 		var vertexShader	= [
-			'varying vec3	vVertexWorldPosition;',
+			'varying vec3	vVertexWorldPosition;',//顶点着色器的变量传递给片元着色器
 			'varying vec3	vVertexNormal;',
 
 			'varying vec4	vFragColor;',
 
-			'void main(){',
+			'void main(){',		  //normalize 归一化函数 转为单位矢量
+
 			'	vVertexNormal	= normalize(normalMatrix * normal);',//将法线转换到视图坐标系中
 
 			'	vVertexWorldPosition	= (modelMatrix * vec4(position, 1.0)).xyz;',//将顶点转换到世界坐标系中
@@ -86,7 +89,7 @@
 			'}'
 
 		].join('\n');
-		var fragmentShader1	= [
+		/*var fragmentShader1	= [
 			'uniform vec3	glowColor;',
 			'uniform float	coeficient;',
 			'uniform float	power;',
@@ -97,8 +100,8 @@
 			'varying vec4	vFragColor;',
 
 			'void main(){',
-			'	vec3 worldCameraToVertex= vVertexWorldPosition - cameraPosition;',	//世界坐标系中从相机位置到顶点位置的距离
-			'	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldCameraToVertex, 0.0)).xyz;',//视图坐标系中从相机位置到顶点位置的距离
+			'	vec3 worldCameraToVertex= vVertexWorldPosition - cameraPosition;',	//世界坐标系中从相机位置到顶点位置向量
+			'	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldCameraToVertex, 0.0)).xyz;',//视图坐标系中从相机位置到顶点位置的向量
 			'	viewCameraToVertex	= normalize(viewCameraToVertex);',//规一化
 			'	float intensity		= pow(coeficient + dot(vVertexNormal, viewCameraToVertex), power);',
 			'	gl_FragColor		= vec4(glowColor, intensity);',
@@ -107,10 +110,10 @@
 			//viewCameraToVertex视图坐标系中点到摄像机的距离向量
 			//dot点乘得到它们的夹角的cos值
 			//从中心向外面角度越来越小（从钝角到锐角）从cos函数也可以知道这个值由负变正，不透明度最终从低到高
-		].join('\n');
+		].join('\n');*/
 
 		var fragmentShader2	= [
-			'uniform vec3	glowColor;',
+			'uniform vec3	glowColor;',//传递全局 只读    发光颜色
 			'uniform float	coeficient;',
 			'uniform float	power;',
 
@@ -122,7 +125,7 @@
 			'void main(){',
 			'	vec3 worldVertexToCamera= cameraPosition - vVertexWorldPosition;',	//世界坐标系中顶点位置到相机位置到的距离
 			'	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldVertexToCamera, 0.0)).xyz;',//视图坐标系中从相机位置到顶点位置的距离
-			'	viewCameraToVertex	= normalize(viewCameraToVertex);',//规一化
+			'	viewCameraToVertex	= normalize(viewCameraToVertex);',//规一化 viewCameraToVertex视图坐标系中点到摄像机的距离向量
 			'	float intensity		= coeficient + dot(vVertexNormal, viewCameraToVertex);',
 			'	if(intensity > 0.55){ intensity = 0.0;}',
 			'	gl_FragColor		= vec4(glowColor, intensity);',
@@ -132,8 +135,8 @@
 			//从中心向外面角度越来越大（从锐角到钝角）从cos函数也可以知道这个值由负变正，不透明度最终从高到低
 		].join('\n');
 		//本质透明度递减
-		var sphere =  new THREE.SphereBufferGeometry( 6, 32, 32 );
-		material	= new THREE.ShaderMaterial({
+		var sphere =  new THREE.SphereBufferGeometry( 12, 32, 32 );
+		/*material	= new THREE.ShaderMaterial({
 			uniforms: {
 				coeficient	: {
 					type	: "f",
@@ -153,7 +156,7 @@
 			blending	: THREE.NormalBlending,
 			transparent	: true
 
-		});
+		});*/
 		material_glow	= new THREE.ShaderMaterial({
 			uniforms: {
 				coeficient	: {
@@ -177,19 +180,27 @@
 		});
 		mesh = new THREE.Mesh(sphere, material_glow);
 
-		var sphere2 =  new THREE.SphereBufferGeometry( 5, 32, 32 );
+		var earth =  new THREE.SphereBufferGeometry( 10, 32, 32 );
 		var material2	= new THREE.MeshPhongMaterial({color:new THREE.Color('green')
 		});
+		const earthMaterial = new THREE.MeshPhongMaterial( {
+			specular: 0x333333,
+			shininess: 5,
+			map: textureLoader.load( 'textures/planets/earth_atmos_2048.jpg' ),
+			specularMap: textureLoader.load( 'textures/planets/earth_specular_2048.jpg' ),
+			normalMap: textureLoader.load( 'textures/planets/earth_normal_2048.jpg' ),
+			normalScale: new THREE.Vector2( 0.85, 0.85 )
+		} );
 
-		var mesh2 = new THREE.Mesh(sphere2, material2);
+		var mesh2 = new THREE.Mesh(earth, earthMaterial);
 
 		var diban_geo = new THREE.PlaneGeometry(50,50,10,10);
-		var material3	= new THREE.MeshPhongMaterial({color:new THREE.Color('glow')
+		var material3	= new THREE.MeshPhongMaterial({color:new THREE.Color('#00a4ff')
 		});
 		var diban = new THREE.Mesh(diban_geo, material3);
 		diban.rotation.set(-Math.PI/2,0,0);
-		diban.position.set(0,-10,0);
-		scene.add(diban);
+		diban.position.set(0,-15,0);
+		//scene.add(diban);
 
 
 
@@ -238,7 +249,7 @@
 			mesh.material = material_glow;
 		}else{
 			//renderer.properties.remove(material_glow)
-			mesh.material = material;
+			//mesh.material = material;
 		}
 		num++;
 	}
