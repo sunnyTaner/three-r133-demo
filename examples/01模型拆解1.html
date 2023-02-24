@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>three.js webgl - glTF loader</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+</head>
+
+<body>
+<input type="range" min="0" max="100" value="0" class="slider" id="myRange" style="position: absolute; top: 0; width: 350px">
+<div id="info">
+	<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - GLTFLoader<br />
+	Battle Damaged Sci-fi Helmet by
+	<a href="https://sketchfab.com/theblueturtle_" target="_blank" rel="noopener">theblueturtle_</a><br />
+	<a href="https://hdrihaven.com/hdri/?h=royal_esplanade" target="_blank" rel="noopener">Royal Esplanade</a> by <a href="https://hdrihaven.com/" target="_blank" rel="noopener">HDRI Haven</a>
+</div>
+
+<script type="module">
+
+	import * as THREE from '../build/three.module.js';
+
+	import { OrbitControls } from './jsm/controls/OrbitControls.js';
+	import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+	import { RGBELoader } from './jsm/loaders/RGBELoader.js';
+	import { RoughnessMipmapper } from './jsm/utils/RoughnessMipmapper.js';
+
+	let camera, scene, renderer;
+
+	init();
+	render();
+
+	function init() {
+
+		const container = document.createElement( 'div' );
+		document.body.appendChild( container );
+
+		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 20 );
+		camera.position.set( - 1.8, 0.6, 2.7 );
+
+		scene = new THREE.Scene();
+
+		new RGBELoader()
+				.setPath( 'textures/equirectangular/' )
+				.load( 'royal_esplanade_1k.hdr', function ( texture ) {
+
+					texture.mapping = THREE.EquirectangularReflectionMapping;
+
+					scene.background = texture;
+					scene.environment = texture;
+
+					render();
+
+					// model
+
+					// use of RoughnessMipmapper is optional
+					const roughnessMipmapper = new RoughnessMipmapper( renderer );
+					let modelBox3 = new THREE.Box3();
+					let meshBox3 = new THREE.Box3();
+					const loader = new GLTFLoader().setPath( 'models/gltf/surveillance_cam/' );
+					loader.load( 'scene.gltf', function ( gltf ) {
+						let obj=gltf.scene
+						modelBox3.expandByObject(obj);
+						//计算模型的中心点坐标，这个为爆炸中心
+						var modelWorldPs = new THREE.Vector3().addVectors(modelBox3.max, modelBox3.min).multiplyScalar(0.5);
+						obj.traverse(function (value) {
+							if(value.isMesh){
+								meshBox3.setFromObject(value);
+
+								//获取每个mesh的中心点，爆炸方向为爆炸中心点指向mesh中心点
+								var worldPs = new THREE.Vector3().addVectors(meshBox3.max, meshBox3.min).multiplyScalar(0.5);
+								if(isNaN(worldPs.x))return;
+								//计算爆炸方向
+								value.worldDir = new THREE.Vector3().subVectors(worldPs, modelWorldPs).normalize();
+								//保存初始坐标
+								value.userData.oldPs = value.getWorldPosition(new THREE.Vector3())
+							}
+						});
+						/*gltf.scene.traverse( function ( child ) {
+
+							if ( child.isMesh ) {
+
+								roughnessMipmapper.generateMipmaps( child.material );
+
+							}
+
+						} );*/
+
+						scene.add( gltf.scene );
+
+						//roughnessMipmapper.dispose();
+
+						render();
+						function applyScalar(scalar){
+
+							obj.traverse(function (value) {
+								if(!value.isMesh || !value.worldDir) return;
+
+								//爆炸公式
+								value.position.copy(new THREE.Vector3().copy(value.userData.oldPs).add(new THREE.Vector3().copy(value.worldDir).multiplyScalar(scalar)))
+							});
+
+						}
+
+						document.querySelector("#myRange").addEventListener('input', function (evt) {
+							console.log(this.value)
+							applyScalar(this.value * 10)
+							render()
+						})
+
+
+					} );
+
+				} );
+
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		renderer.toneMappingExposure = 1;
+		renderer.outputEncoding = THREE.sRGBEncoding;
+		container.appendChild( renderer.domElement );
+
+		const controls = new OrbitControls( camera, renderer.domElement );
+		controls.addEventListener( 'change', render ); // use if there is no animation loop
+		controls.minDistance = 2;
+		controls.maxDistance = 10;
+		controls.target.set( 0, 0, - 0.2 );
+		controls.update();
+
+		window.addEventListener( 'resize', onWindowResize );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+		render();
+
+	}
+
+	//
+
+	function render() {
+
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+
+</body>
+</html>

@@ -175,7 +175,16 @@ void main() {}
 
 以上就是我对threejs中使用shader的一些概念总结，希望对新学习webgl的同学有些帮助。当你理解完shader后，就可以进入其他其他的世界（比如后处理）进行探索。由于这部分内容已经涉及一些webgl原生底层概念，内容比较多，知识点关联性有点大，所以很难一次讲清楚。希望以后有时间可以继续补全。
 
+# 9、三维渲染机制
 
+设想在世界坐标系中，有一个任意方向任意位置的物体，我们要把它渲染到任意位置任意方向的摄像机中，为了做到这一点，必须将物体的所有顶点从物体坐标系中转换到世界坐标系中，接着再从世界坐标系中转换到摄像机坐标系中
 
+数学变换总结如下
+
+<p align="center">
+<img src="https://github.com/AnalyticalGraphicsInc/cesium/wiki/logos/Cesium_Logo_Color.jpg" width="50%" />
+</p>
+
+## 1www
 
 

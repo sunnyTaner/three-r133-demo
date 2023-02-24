@@ -55,7 +55,9 @@
 
 				const group = new THREE.Group();
 				const baseMat = new THREE.MeshBasicMaterial();
-				baseMat.depthWrite = false;
+				// When drawing 2D overlays it can be useful to disable the depth writing
+				// in order to layer several things together without creating z-index artifacts.
+				baseMat.depthWrite = false;//
 				baseMat.depthTest = false;
 				baseMat.colorWrite = false;
 				baseMat.stencilWrite = true;

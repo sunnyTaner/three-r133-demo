@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>向量矩阵</title>
+</head>
+<body>
+<script type="module">
+	import * as THREE from '../build/three.module.js'
+	import {OrbitControls} from './jsm/controls/OrbitControls.js'
+	let camera,scene,renderer
+	const container = document.createElement( 'div' );
+	document.body.appendChild( container );
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
+
+	camera.position.set(0, 8.44, 10); //设置相机位置
+	camera.lookAt(new THREE.Vector3(0, 0, 0)); //设置相机方向(指向的场景对象)
+
+	scene = new THREE.Scene();
+	scene.add(new THREE.AxesHelper( 5 ));
+	const light = new THREE.HemisphereLight(0xffffff, 0xcccccc, 1);
+	scene.add(light);
+
+	var box_geometry = new THREE.BoxGeometry();
+	var sphere_geometry = new THREE.SphereGeometry(0.5, 32, 32);
+	var cylinder_geometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+
+	var material = new THREE.MeshLambertMaterial({color: new THREE.Color(0.9, 0.55, 0.4)})
+	var box = new THREE.Mesh(box_geometry, material);
+	var sphere = new THREE.Mesh(sphere_geometry, material);
+	sphere.position.y += 1;
+	var cylinder = new THREE.Mesh(cylinder_geometry, material);
+	cylinder.position.y += 1.75;
+
+	/**
+	 * 创建扫描网格模型
+	 */
+	var shape = new THREE.Shape();
+	/**四条直线绘制一个矩形轮廓*/
+	shape.moveTo(0,0);//起点
+	shape.lineTo(0,10);//第2点
+	shape.lineTo(10,10);//第3点
+	shape.lineTo(10,0);//第4点
+	shape.lineTo(0,0);//第5点
+
+	var sp_geometry = new THREE.ExtrudeGeometry(//拉伸造型
+			shape,//二维轮廓
+			//拉伸参数
+			{
+				amount:20,//拉伸长度
+				bevelEnabled:false//无倒角
+			}
+	);
+
+
+	/**创建轮廓的扫描轨迹(3D样条曲线)*/
+	var curve = new THREE.LineCurve3 ([
+		new THREE.Vector3( -10, -50, -50 ),
+		new THREE.Vector3( 10, 0, 0 ),
+		new THREE.Vector3( 8, 50, 50 ),
+		new THREE.Vector3( -5, 0, 100)
+	]);
+	const points = curve.getPoints( 50 );
+	const geometry = new THREE.BufferGeometry().setFromPoints( points );
+	const curve_material = new THREE.MeshStandardMaterial( {
+		color: 0x99ffff
+	} );
+	var line = new THREE.Line(geometry, curve_material);
+
+
+	/*var ex_geometry = new THREE.ExtrudeGeometry(//拉伸造型
+			shape,//二维轮廓
+			//拉伸参数
+			{
+				bevelEnabled:false,//无倒角
+				extrudePath:curve,//选择扫描轨迹
+				steps:50//扫描方向细分数
+			}
+	);*/
+	var ex_material = new THREE.MeshLambertMaterial({color: new THREE.Color(0.9, 0.55, 0.4)})
+	var ex_mesh = new THREE.Mesh(sp_geometry, ex_material);
+	//scene.add(ex_mesh)
+
+	// 设置 matrixAutoUpdate为false 变换矩阵不受设置位置的影响
+	box.matrixAutoUpdate = false;
+	sphere.matrixAutoUpdate = false;
+	cylinder.matrixAutoUpdate = false;
+
+	var sphere_matrix = new THREE.Matrix4().makeTranslation(0.0, 1.0, 0.0);
+	// 绕z轴顺时针旋转45度
+	sphere_matrix.multiply(new THREE.Matrix4().makeRotationZ(-Math.PI * 0.25));
+	sphere.applyMatrix(sphere_matrix);
+	var cylinder_matrix = sphere_matrix.clone();
+	//var cylinder_matrix = sphere.matrix.clone();
+	console.log("cylinder_matrix",cylinder_matrix)
+	console.log("cylinder_matrix_model",sphere.matrix)
+	console.log("cylinder_matrix_world",sphere.matrixWorld)
+	cylinder_matrix.multiply(new THREE.Matrix4().makeTranslation(0.0, 0.75, 0.0));
+	cylinder.applyMatrix(cylinder_matrix);
+
+
+
+	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	renderer.toneMappingExposure = 1;
+	renderer.outputEncoding = THREE.sRGBEncoding;
+	const controls = new OrbitControls( camera, renderer.domElement );
+	container.appendChild( renderer.domElement );
+
+	scene.add(box);
+	scene.add(sphere);
+	scene.add(cylinder);
+	animate()
+	function animate(){
+		// 圆柱绕Y轴旋转
+		let matrix=new THREE.Matrix4().makeRotationY(-Math.PI * 0.01)
+		cylinder.applyMatrix(matrix);
+
+		renderer.render( scene, camera );
+		requestAnimationFrame(animate)
+	}
+
+</script>
+</body>
+</html>

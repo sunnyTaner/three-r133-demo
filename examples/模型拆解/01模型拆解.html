@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>模型拆解</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="../main.css">
+</head>
+
+<body>
+<div style="position: absolute; top: 5px;left:5px">
+	<span style="color: #1b1b1b">进度</span>
+	<input type="range" min="0" max="1" step="0.01" value="0" class="slider" id="myRange" style="position: absolute; top: 1px; width: 350px">
+</div>
+
+<script type="module">
+
+	import * as THREE from '../../build/three.module.js';
+
+	import { OrbitControls } from '../jsm/controls/OrbitControls.js';
+	import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
+	import {ModelSplit} from "./ModelSplit.js";
+	import * as dat from '../../examples/jsm/libs/dat.gui.module.js'
+	const gui = new dat.GUI();
+	let camera, scene, renderer,modelSplit;
+
+	init();
+	document.querySelector("#myRange").addEventListener('input', function (evt) {
+		modelSplit.setValue(this.value)
+	})
+
+	render();
+
+	function init() {
+
+		const container = document.createElement( 'div' );
+		document.body.appendChild( container );
+		camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
+
+		camera.position.set(0, 8.44, 40); //设置相机位置
+		camera.lookAt(new THREE.Vector3(0, 0, 0)); //设置相机方向(指向的场景对象)
+
+		scene = new THREE.Scene();
+		scene.add(new THREE.AxesHelper( 5 ));
+		const light = new THREE.HemisphereLight(0xffffff, 0xcccccc, 1);
+		scene.add(light);
+		scene.background = new THREE.CubeTextureLoader().load( //加载模型白天贴图
+				[
+					  './ambient/RT.jpg', //右
+					  './ambient/LF.jpg', //左
+					  './ambient/UP.jpg', // 上
+					  './ambient/DN.jpg', // 下
+					  './ambient/BK.jpg', // 前
+					  './ambient/FR.jpg' // 后
+				]);
+		let modelBox3 = new THREE.Box3();
+		let meshBox3 = new THREE.Box3();
+		// '../models/gltf/RobotExpressive/'
+		const loader = new GLTFLoader().setPath( '../models/gltf/RobotExpressive/' );
+		modelSplit=new ModelSplit()
+
+		gui.add({
+			"爆炸":function () {
+				startBZ()
+			}
+		}, "爆炸");
+		gui.add({
+			"还原":function () {
+				quitSplit()
+			}
+		}, "还原");
+
+		// RobotExpressive.glb
+		loader.load( 'RobotExpressive.glb', function ( gltf ) {
+			let obj=gltf.scene
+
+			//重新设置中心点
+			const boxmd = new THREE.Box3().setFromObject(obj);
+			const center = boxmd.getCenter(new THREE.Vector3());
+			obj.position.x += obj.position.x - center.x;
+			obj.position.y += obj.position.y - center.y;
+			obj.position.z += obj.position.z - center.z;
+			obj.scale.set(1, 1, 1)
+
+			modelBox3.expandByObject(obj);
+
+			obj.updateMatrixWorld();
+			modelSplit.setSplitModel(obj)
+			scene.add( obj );
+
+		} );
+
+
+
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		renderer.toneMappingExposure = 1;
+		renderer.outputEncoding = THREE.sRGBEncoding;
+		const controls = new OrbitControls( camera, renderer.domElement );
+		container.appendChild( renderer.domElement );
+
+		//controls.addEventListener( 'change', render ); // use if there is no animation loop
+		/*controls.minDistance = 2;
+		controls.maxDistance = 10;*/
+		//controls.target.set( 0, 0, - 0.2 );
+		//controls.update();
+
+		window.addEventListener( 'resize', onWindowResize );
+		animate()
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+		render();
+
+	}
+
+
+	function render() {
+
+		renderer.render( scene, camera );
+
+	}
+	function animate() {
+		render()
+		modelSplit&&modelSplit.update()
+		/*if(modelSplit){
+			modelSplit.update()
+		}*/
+		requestAnimationFrame(animate)
+	}
+	function startBZ() {
+		if(modelSplit){
+			modelSplit.startSplit()
+		}
+	}
+	function quitSplit() {
+		if(modelSplit){
+			modelSplit.quitSplit()
+		}
+	}
+</script>
+
+</body>
+</html>

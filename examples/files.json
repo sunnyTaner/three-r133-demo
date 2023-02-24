@@ -54,6 +54,18 @@
 			"img": "screenshots/01shader_shadertoy.png",
 			"url": "shaderEffect/index.html"
 		},
+		{
+			"label": "模型爆炸",
+			"name": "模型拆解/01模型拆解",
+			"img": "screenshots/模型拆解.png",
+			"url": "模型拆解/01模型拆解.html"
+		},
+		{
+			"label": "模型切割",
+			"name": "模型拆解/02模型切割",
+			"img": "screenshots/模型切割.png",
+			"url": "模型拆解/02模型切割.html"
+		},
 		"webgl_animation_keyframes",
 		"webgl_animation_skinning_blending",
 		"webgl_animation_skinning_additive_blending",

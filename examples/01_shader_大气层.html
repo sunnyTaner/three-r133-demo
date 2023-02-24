@@ -16,9 +16,6 @@
 </head>
 
 <body>
-<button style="width: 200px;height: 100px" onclick="exchangeShader()">切换着色器</button>
-<!--<script src="build/three.js"></script>
-<script src="build/TrackballControls.js"></script>-->
 
 <script type="module">
 	import * as THREE from '../build/three.module.js';
@@ -89,28 +86,6 @@
 			'}'
 
 		].join('\n');
-		/*var fragmentShader1	= [
-			'uniform vec3	glowColor;',
-			'uniform float	coeficient;',
-			'uniform float	power;',
-
-			'varying vec3	vVertexNormal;',
-			'varying vec3	vVertexWorldPosition;',
-
-			'varying vec4	vFragColor;',
-
-			'void main(){',
-			'	vec3 worldCameraToVertex= vVertexWorldPosition - cameraPosition;',	//世界坐标系中从相机位置到顶点位置向量
-			'	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldCameraToVertex, 0.0)).xyz;',//视图坐标系中从相机位置到顶点位置的向量
-			'	viewCameraToVertex	= normalize(viewCameraToVertex);',//规一化
-			'	float intensity		= pow(coeficient + dot(vVertexNormal, viewCameraToVertex), power);',
-			'	gl_FragColor		= vec4(glowColor, intensity);',
-			'}'
-			//vVertexNormal视图坐标系中点的法向量
-			//viewCameraToVertex视图坐标系中点到摄像机的距离向量
-			//dot点乘得到它们的夹角的cos值
-			//从中心向外面角度越来越小（从钝角到锐角）从cos函数也可以知道这个值由负变正，不透明度最终从低到高
-		].join('\n');*/
 
 		var fragmentShader2	= [
 			'uniform vec3	glowColor;',//传递全局 只读    发光颜色
@@ -126,6 +101,7 @@
 			'	vec3 worldVertexToCamera= cameraPosition - vVertexWorldPosition;',	//世界坐标系中顶点位置到相机位置到的距离
 			'	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldVertexToCamera, 0.0)).xyz;',//视图坐标系中从相机位置到顶点位置的距离
 			'	viewCameraToVertex	= normalize(viewCameraToVertex);',//规一化 viewCameraToVertex视图坐标系中点到摄像机的距离向量
+				//                                     视图法线向量        视图相机到顶点的向量
 			'	float intensity		= coeficient + dot(vVertexNormal, viewCameraToVertex);',
 			'	if(intensity > 0.55){ intensity = 0.0;}',
 			'	gl_FragColor		= vec4(glowColor, intensity);',
@@ -136,27 +112,6 @@
 		].join('\n');
 		//本质透明度递减
 		var sphere =  new THREE.SphereBufferGeometry( 12, 32, 32 );
-		/*material	= new THREE.ShaderMaterial({
-			uniforms: {
-				coeficient	: {
-					type	: "f",
-					value	: 1.0
-				},
-				power		: {
-					type	: "f",
-					value	: 2
-				},
-				glowColor	: {
-					type	: "c",
-					value	: new THREE.Color('blue')
-				}
-			},
-			vertexShader	: vertexShader,
-			fragmentShader	: fragmentShader1,
-			blending	: THREE.NormalBlending,
-			transparent	: true
-
-		});*/
 		material_glow	= new THREE.ShaderMaterial({
 			uniforms: {
 				coeficient	: {
@@ -181,8 +136,6 @@
 		mesh = new THREE.Mesh(sphere, material_glow);
 
 		var earth =  new THREE.SphereBufferGeometry( 10, 32, 32 );
-		var material2	= new THREE.MeshPhongMaterial({color:new THREE.Color('green')
-		});
 		const earthMaterial = new THREE.MeshPhongMaterial( {
 			specular: 0x333333,
 			shininess: 5,
@@ -195,12 +148,12 @@
 		var mesh2 = new THREE.Mesh(earth, earthMaterial);
 
 		var diban_geo = new THREE.PlaneGeometry(50,50,10,10);
-		var material3	= new THREE.MeshPhongMaterial({color:new THREE.Color('#00a4ff')
+		var material3	= new THREE.MeshPhongMaterial({color:new THREE.Color('#10ceff')
 		});
 		var diban = new THREE.Mesh(diban_geo, material3);
 		diban.rotation.set(-Math.PI/2,0,0);
 		diban.position.set(0,-15,0);
-		//scene.add(diban);
+		scene.add(mesh2);
 
 
 
@@ -216,7 +169,7 @@
 		//     renderer.clearDepth();
 
 		scene.add(mesh);
-		scene.add(mesh2);
+		//scene.add(mesh2);
 	}
 
 	function onWindowResize() {
@@ -240,19 +193,7 @@
 
 
 	}
-	var num = 0;
-	function exchangeShader() {
-		// console.log("!!!");
-		//scene.remove(mesh);
-		if(num%2 == 0){
-			//renderer.properties.remove(material)
-			mesh.material = material_glow;
-		}else{
-			//renderer.properties.remove(material_glow)
-			//mesh.material = material;
-		}
-		num++;
-	}
+
 
 </script>
 
